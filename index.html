@@ -55,14 +55,17 @@
             window.onload = function () {
                 const body = document.body;
                 const originalPositions = {};
+                isAnimating = false;
 
                 // move div element to the top with animation
-                function moveToTopWithAnimation(div) {
+                const moveToTop = (div) => {
+                    div.removeEventListener("click", handleClick);
+                    isAnimating = true;
                     gsap.fromTo(
                         div,
                         { opacity: 0, y: 0, scale: 1.5, rotation: -145 },
                         {
-                            duration: 0.5,
+                            duration: 0.3,
                             opacity: 1,
                             y: 0,
                             scale: 1,
@@ -70,21 +73,29 @@
                             backgroundColor: "#ec8bb0",
                             onComplete: () => {
                                 body.prepend(div);
+                                isAnimating = false;
+                                div.addEventListener("click", handleClick);
                             },
                         }
                     );
-                }
+                };
 
-                function handleClick(event) {
+                const handleClick = (event) => {
+                    if (isAnimating) {
+                        return;
+                    }
                     const div = event.target;
 
                     if (originalPositions[div.id]) {
+                        div.removeEventListener("click", handleClick);
+                        isAnimating = true;
                         // If div's original position stored, return it to their original position
+
                         gsap.fromTo(
                             div,
                             { opacity: 0, y: 0, scale: 0.1, rotation: 145 },
                             {
-                                duration: 0.5,
+                                duration: 0.3,
                                 opacity: 1,
                                 y: 0,
                                 scale: 1,
@@ -98,6 +109,9 @@
                                         originalPositions[div.id].nextSibling
                                     );
                                     delete originalPositions[div.id];
+
+                                    isAnimating = false;
+                                    div.addEventListener("click", handleClick);
                                 },
                             }
                         );
@@ -107,9 +121,9 @@
                             parent: div.parentElement,
                             nextSibling: div.nextElementSibling,
                         };
-                        moveToTopWithAnimation(div);
+                        moveToTop(div);
                     }
-                }
+                };
 
                 // Create 100 div elements and add a click event handler
                 for (let i = 1; i <= 100; i++) {
