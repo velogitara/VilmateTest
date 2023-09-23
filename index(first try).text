@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Vilmate TestWork</title>
+        <link rel="icon" type="image/png" href="/android-chrome-192x192.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/apple-touch-icon.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="/favicon-32x32.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="/favicon-16x16.png"
+        />
+        <link rel="manifest" href="/site.webmanifest" />
+        <style>
+            body {
+                background-color: #f0f0f0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                margin: 0;
+            }
+
+            .box {
+                width: 100px;
+                height: 100px;
+                background-color: lightblue;
+                margin: 5px;
+                text-align: center;
+                line-height: 100px;
+                cursor: pointer;
+            }
+
+            .clicked {
+                background-color: #f08080;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container"></div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+
+        <script>
+            window.onload = function () {
+                const container = document.getElementById("container");
+                let lastClickedDiv = null;
+
+                // Create 100 div elements and add them to  container
+                for (let i = 1; i <= 100; i++) {
+                    const div = document.createElement("div");
+                    div.className = "box";
+                    div.textContent = `div${i}`;
+                    container.appendChild(div);
+
+                    // Add  click event listener to each div
+                    div.addEventListener("click", function () {
+                        if (!div.dataset.originalIndex) {
+                            // Store the original index in a data attribute
+                            div.dataset.originalIndex = Array.from(
+                                container.children
+                            ).indexOf(div);
+                            // Get the position of the first div in the container
+                            const firstDiv = container.children[0];
+                            const firstDivRect =
+                                firstDiv.getBoundingClientRect();
+                            // Animate the clicked div to the position of the first div using GSAP
+                            gsap.to(div, {
+                                duration: 0.3,
+                                x:
+                                    firstDivRect.left -
+                                    div.getBoundingClientRect().left,
+                                y:
+                                    firstDivRect.top -
+                                    div.getBoundingClientRect().top,
+                                scale: 1,
+                                onComplete: () => {
+                                    // After the animation, adjust the positions of the other divs
+                                    const originalIndex = parseInt(
+                                        div.dataset.originalIndex
+                                    );
+                                    for (
+                                        let j = originalIndex - 1;
+                                        j >= 0;
+                                        j--
+                                    ) {
+                                        const sibling = container.children[j];
+                                        gsap.to(sibling, {
+                                            duration: 0.3,
+                                            y: 105,
+                                        });
+                                    }
+                                },
+                            });
+                            // Reset the last clicked div's state if it exists
+                            if (lastClickedDiv) {
+                                gsap.to(lastClickedDiv, {
+                                    duration: 0.3,
+                                    x: 0,
+                                    y: 0,
+                                    scale: 1,
+                                });
+                                lastClickedDiv.removeAttribute(
+                                    "data-originalIndex"
+                                );
+                                const lastOriginalIndex = parseInt(
+                                    lastClickedDiv.dataset.originalIndex
+                                );
+                                container.insertBefore(
+                                    lastClickedDiv,
+                                    container.children[lastOriginalIndex]
+                                );
+                            }
+
+                            // Update the last clicked div
+                            lastClickedDiv = div;
+                        } else {
+                            // Get the original index from the data attribute
+                            const originalIndex = parseInt(
+                                div.dataset.originalIndex
+                            );
+
+                            // Move the div back to its original position using GSAP
+                            gsap.to(div, {
+                                duration: 0.3,
+                                x: 0,
+                                y: 0,
+                                scale: 1,
+                                onComplete: () => {
+                                    // After the animation, remove the data attribute to reset the behavior
+                                    delete div.dataset.originalIndex;
+                                },
+                            });
+
+                            // if (div !== lastClickedDiv) {
+                            //     // Insert the div after the sibling to maintain the correct order
+                            //     container.insertBefore(
+                            //         div,
+                            //         container.children[originalIndex]
+                            //     );
+                            // }
+
+                            // Adjust the positions of the other divs that were shifted down
+                            for (let j = originalIndex - 1; j >= 0; j--) {
+                                const siblingToShiftBack =
+                                    container.children[j];
+                                gsap.to(siblingToShiftBack, {
+                                    duration: 0.3,
+                                    y: 0,
+                                });
+                            }
+
+                            // Reset the last clicked div
+                            lastClickedDiv = null;
+                        }
+
+                        // Toggle the "clicked" class for the clicked effect
+                        div.classList.toggle("clicked");
+                    });
+                }
+            };
+        </script>
+    </body>
+</html>

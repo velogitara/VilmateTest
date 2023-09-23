@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Vilmate TestWork</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+        <link rel="icon" type="image/png" href="/android-chrome-192x192.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/apple-touch-icon.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="/favicon-32x32.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="/favicon-16x16.png"
+        />
+        <link rel="manifest" href="/site.webmanifest" />
+        <style>
+            body {
+                background-color: #f0f0f0;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                margin: 50px;
+            }
+
+            div {
+                width: 100px;
+                height: 100px;
+                background-color: lightblue;
+                border-radius: 3%;
+                margin: 5px;
+                border: 1px solid #ec8bcc;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container"></div>
+
+        <script>
+            window.onload = function () {
+                const body = document.body;
+                const originalPositions = {};
+
+                // move div element to the top with GSAP animation
+                function moveToTopWithAnimation(div) {
+                    gsap.fromTo(
+                        div,
+                        { opacity: 0, y: 0, scale: 1.5, rotation: -145 },
+                        {
+                            duration: 0.5,
+                            opacity: 1,
+                            y: 0,
+                            scale: 1,
+                            rotation: 0,
+                            backgroundColor: "#ec8bb0",
+                            onComplete: () => {
+                                body.prepend(div);
+                            },
+                        }
+                    );
+                }
+
+                function handleClick(event) {
+                    const div = event.target;
+
+                    if (originalPositions[div.id]) {
+                        // If div's original position is stored, return it to its original position
+                        gsap.fromTo(
+                            div,
+                            { opacity: 0, y: 0, scale: 0.1, rotation: 145 },
+                            {
+                                duration: 0.5,
+                                opacity: 1,
+                                y: 0,
+                                scale: 1,
+                                rotation: 0,
+                                backgroundColor: "#ece68b",
+                                onComplete: () => {
+                                    originalPositions[
+                                        div.id
+                                    ].parent.insertBefore(
+                                        div,
+                                        originalPositions[div.id].nextSibling
+                                    );
+                                    delete originalPositions[div.id];
+                                },
+                            }
+                        );
+                    } else {
+                        // Otherwise, move the selected div to the top of body
+                        originalPositions[div.id] = {
+                            parent: div.parentElement,
+                            nextSibling: div.nextElementSibling,
+                        };
+                        moveToTopWithAnimation(div);
+                    }
+                }
+
+                // Create 100 div elements and add a click event handler
+                for (let i = 1; i <= 100; i++) {
+                    const div = document.createElement("div");
+                    div.textContent = `div${i}`;
+                    div.id = `div${i}`;
+                    div.addEventListener("click", handleClick);
+                    body.appendChild(div);
+                }
+            };
+        </script>
+    </body>
+</html>
