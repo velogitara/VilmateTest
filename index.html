@@ -56,7 +56,7 @@
                 const body = document.body;
                 const originalPositions = {};
 
-                // move div element to the top with GSAP animation
+                // move div element to the top with animation
                 function moveToTopWithAnimation(div) {
                     gsap.fromTo(
                         div,
@@ -79,7 +79,7 @@
                     const div = event.target;
 
                     if (originalPositions[div.id]) {
-                        // If div's original position is stored, return it to its original position
+                        // If div's original position stored, return it to their original position
                         gsap.fromTo(
                             div,
                             { opacity: 0, y: 0, scale: 0.1, rotation: 145 },
