@@ -5,36 +5,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Vilmate TestWork</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
-        <link rel="icon" type="image/png" href="/android-chrome-192x192.png" />
-        <link
-            rel="apple-touch-icon"
-            sizes="180x180"
-            href="/apple-touch-icon.png"
-        />
-        <link
-            rel="icon"
-            type="image/png"
-            sizes="32x32"
-            href="/favicon-32x32.png"
-        />
-        <link
-            rel="icon"
-            type="image/png"
-            sizes="16x16"
-            href="/favicon-16x16.png"
-        />
-        <link rel="manifest" href="/site.webmanifest" />
         <style>
             body {
                 background-color: #f0f0f0;
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                align-items: center;
                 margin: 50px;
             }
 
-            div {
+            .div {
                 width: 100px;
                 height: 100px;
                 background-color: lightblue;
@@ -46,19 +23,35 @@
                 align-items: center;
                 cursor: pointer;
             }
+            #container {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+            }
         </style>
     </head>
     <body>
-        <div id="container"></div>
-
         <script>
             window.onload = function () {
                 const body = document.body;
+                const container = document.createElement("div");
+                container.id = "container";
+                body.appendChild(container);
+
                 const originalPositions = {};
+                const originalOrder = Array.from(container.children);
+
+                const divData = []; // Array of objects to store div data
+
+                const clickedClass = "clicked";
+
                 isAnimating = false;
 
-                // move div element to the top with animation
+                //////////////////////////////// move div element to the top with animation ///////////////////////////
                 const moveToTop = (div) => {
+                    div.classList.add("clicked");
+
                     div.removeEventListener("click", handleClick);
                     isAnimating = true;
                     gsap.fromTo(
@@ -72,14 +65,19 @@
                             rotation: 0,
                             backgroundColor: "#ec8bb0",
                             onComplete: () => {
-                                body.prepend(div);
+                                // Store the current position in originalPositions
+                                originalPositions[div.id] = {
+                                    parent: div.parentElement,
+                                    nextSibling: div.nextElementSibling,
+                                };
+                                container.prepend(div);
                                 isAnimating = false;
                                 div.addEventListener("click", handleClick);
                             },
                         }
                     );
                 };
-
+                ///////////////////////// HANDLER CLICK //////////////////////////
                 const handleClick = (event) => {
                     if (isAnimating) {
                         return;
@@ -87,6 +85,7 @@
                     const div = event.target;
 
                     if (originalPositions[div.id]) {
+                        // console.log("originalPositions[div.id]", [div.id]);
                         div.removeEventListener("click", handleClick);
                         isAnimating = true;
                         // If div's original position stored, return it to their original position
@@ -101,38 +100,107 @@
                                 scale: 1,
                                 rotation: 0,
                                 backgroundColor: "#ece68b",
-                                onComplete: () => {
-                                    originalPositions[
-                                        div.id
-                                    ].parent.insertBefore(
-                                        div,
-                                        originalPositions[div.id].nextSibling
-                                    );
-                                    delete originalPositions[div.id];
 
-                                    isAnimating = false;
-                                    div.addEventListener("click", handleClick);
+                                onComplete: () => {
+                                    const closestNotClickedIndex =
+                                        findClosestNotClickedPosition(div);
+                                    if (closestNotClickedIndex !== -1) {
+                                        const targetId =
+                                            divData[closestNotClickedIndex].id; // Get the id of the closest not clicked div
+                                        const targetDiv =
+                                            document.getElementById(targetId); // Find the target div by its id
+
+                                        if (targetDiv) {
+                                            originalPositions[
+                                                div.id
+                                            ].parent.insertBefore(
+                                                div,
+                                                originalPositions[div.id]
+                                                    .nextSibling
+                                            );
+                                            delete originalPositions[div.id];
+
+                                            isAnimating = false;
+                                            div.addEventListener(
+                                                "click",
+                                                handleClick
+                                            );
+                                            div.classList.remove(clickedClass);
+
+                                            // Update the class property in divData
+                                            const foundDivData = divData.find(
+                                                (data) => data.id === div.id
+                                            );
+                                            if (foundDivData) {
+                                                foundDivData.class = "";
+                                            }
+
+                                            // Insert the div before the target div
+                                            const container =
+                                                document.getElementById(
+                                                    "container"
+                                                );
+                                            container.insertBefore(
+                                                div,
+                                                targetDiv
+                                            );
+                                        }
+                                    }
                                 },
                             }
                         );
                     } else {
-                        // Otherwise, move the selected div to the top of body
-                        originalPositions[div.id] = {
-                            parent: div.parentElement,
-                            nextSibling: div.nextElementSibling,
-                        };
+                        const r = divData.find((data) => data.id === div.id);
+                        if (r) {
+                            r.class = "clicked";
+                        }
                         moveToTop(div);
                     }
                 };
 
-                // Create 100 div elements and add a click event handler
-                for (let i = 1; i <= 100; i++) {
-                    const div = document.createElement("div");
-                    div.textContent = `div${i}`;
-                    div.id = `div${i}`;
-                    div.addEventListener("click", handleClick);
-                    body.appendChild(div);
-                }
+                const findClosestNotClickedPosition = (div) => {
+                    const divIndex = divData.findIndex(
+                        (data) => data.id === div.id
+                    );
+
+                    if (divIndex !== -1) {
+                        // Iterate forward to find the closest div with class === ""
+                        for (let i = divIndex + 1; i < divData.length; i++) {
+                            if (divData[i].class === "") {
+                                return i; // Found the closest div with class === ""
+                            }
+                        }
+
+                        // Iterate backward to find the closest div with class === ""
+                        for (let i = divIndex - 1; i >= 0; i--) {
+                            if (divData[i].class === "") {
+                                return i + 1; // Found the closest div with class === ""
+                            }
+                        }
+                    }
+
+                    // If no closest div with class === "" is found, return -1
+                    return -1;
+                };
+
+                const originalArray = Array.from({ length: 100 }).forEach(
+                    (_, i) => {
+                        const div = document.createElement("div");
+                        div.classList.add("div");
+                        div.textContent = `div${i + 1}`;
+                        div.id = `div${i + 1}`;
+                        div.addEventListener("click", handleClick);
+                        container.appendChild(div);
+
+                        const divInfo = {
+                            id: div.id,
+                            class: "",
+                            index: i,
+                        };
+
+                        divData.push(divInfo);
+                    }
+                );
             };
         </script>
     </body>
