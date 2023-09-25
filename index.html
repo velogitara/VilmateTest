@@ -40,9 +40,9 @@
                 body.appendChild(container);
 
                 const originalPositions = {};
-                const originalOrder = Array.from(container.children);
+                // const originalOrder = Array.from(container.children);
 
-                const divData = []; // Array of objects to store div data
+                const divData = [];
 
                 const clickedClass = "clicked";
 
@@ -85,7 +85,6 @@
                     const div = event.target;
 
                     if (originalPositions[div.id]) {
-                        // console.log("originalPositions[div.id]", [div.id]);
                         div.removeEventListener("click", handleClick);
                         isAnimating = true;
                         // If div's original position stored, return it to their original position
@@ -104,6 +103,7 @@
                                 onComplete: () => {
                                     const closestNotClickedIndex =
                                         findClosestNotClickedPosition(div);
+                                    // console.log(closestNotClickedIndex);
                                     if (closestNotClickedIndex !== -1) {
                                         const targetId =
                                             divData[closestNotClickedIndex].id; // Get the id of the closest not clicked div
@@ -135,7 +135,7 @@
                                                 foundDivData.class = "";
                                             }
 
-                                            // Insert the div before the target div
+                                            // Insert the div before the target
                                             const container =
                                                 document.getElementById(
                                                     "container"
@@ -144,6 +144,34 @@
                                                 div,
                                                 targetDiv
                                             );
+                                        }
+                                    } else {
+                                        // console.log(
+                                        //     "No closest not clicked div found, moving to end of list"
+                                        // );
+
+                                        // Move the div to the end of the container
+                                        const container =
+                                            document.getElementById(
+                                                "container"
+                                            );
+                                        container.appendChild(div);
+
+                                        // Other actions
+                                        isAnimating = false;
+                                        div.addEventListener(
+                                            "click",
+                                            handleClick
+                                        );
+                                        delete originalPositions[div.id];
+                                        div.classList.remove(clickedClass);
+
+                                        // Update the class property in divData
+                                        const foundDivData = divData.find(
+                                            (data) => data.id === div.id
+                                        );
+                                        if (foundDivData) {
+                                            foundDivData.class = "";
                                         }
                                     }
                                 },
@@ -162,21 +190,23 @@
                     const divIndex = divData.findIndex(
                         (data) => data.id === div.id
                     );
-
                     if (divIndex !== -1) {
                         // Iterate forward to find the closest div with class === ""
                         for (let i = divIndex + 1; i < divData.length; i++) {
                             if (divData[i].class === "") {
+                                // console.log("we moving forward to find");
                                 return i; // Found the closest div with class === ""
                             }
                         }
 
-                        // Iterate backward to find the closest div with class === ""
-                        for (let i = divIndex - 1; i >= 0; i--) {
-                            if (divData[i].class === "") {
-                                return i + 1; // Found the closest div with class === ""
-                            }
-                        }
+                        // // Iterate backward to find the closest div with class === ""
+                        // for (let i = divIndex - 1; i >= 0; i--) {
+                        //     if (divData[i].class === "") {
+                        //         console.log("we moving backward to find");
+
+                        //         return i + 1;
+                        //     }
+                        // }
                     }
 
                     // If no closest div with class === "" is found, return -1
